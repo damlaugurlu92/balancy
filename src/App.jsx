@@ -23,8 +23,8 @@ export default function App() {
   const [lang, setLang] = useState(
     () => localStorage.getItem("davidata_lang") || "tr"
   );
+  const [activeTab, setActiveTab] = useState("home");
 
-  // Real-time Firestore listener
   useEffect(() => {
     const q = query(
       collection(db, "transactions"),
@@ -48,6 +48,7 @@ export default function App() {
       userId: "default",
       createdAt: serverTimestamp(),
     });
+    setActiveTab("home");
   };
 
   const handleDelete = async (id) => {
@@ -84,6 +85,13 @@ export default function App() {
   const avgExpense = expense / monthCount;
   const avgNet     = net     / monthCount;
 
+  const tabs = [
+    { id: "home",    icon: "⊞",  label: lang === "tr" ? "Özet"      : "Summary"  },
+    { id: "add",     icon: "+",   label: lang === "tr" ? "Ekle"      : "Add"      },
+    { id: "history", icon: "≡",   label: lang === "tr" ? "İşlemler"  : "History"  },
+    { id: "charts",  icon: "◎",   label: lang === "tr" ? "Analiz"    : "Analysis" },
+  ];
+
   return (
     <div className="app">
       <header className="header">
@@ -99,55 +107,96 @@ export default function App() {
         </button>
       </header>
 
-      <FilterBar
-        active={filter}
-        onChange={setFilter}
-        selectedMonth={selectedMonth}
-        onMonthChange={setSelectedMonth}
-        lang={lang}
-      />
+      {(activeTab === "home" || activeTab === "history") && (
+        <FilterBar
+          active={filter}
+          onChange={setFilter}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          lang={lang}
+        />
+      )}
 
-      <main className="main">
-        <section className="left-panel">
-          <Dashboard
-            income={income}
-            expense={expense}
-            net={net}
-            txCount={filtered.length}
-            avgIncome={avgIncome}
-            avgExpense={avgExpense}
-            avgNet={avgNet}
-            monthCount={monthCount}
-            lang={lang}
-            t={t}
-          />
-          <AnalysisPanel transactions={filtered} period={filter === "month" ? `${selectedMonth.year}-${selectedMonth.month + 1}` : filter} lang={lang} />
+      <main className="main-mobile">
+        {activeTab === "home" && (
+          <div className="tab-content">
+            <Dashboard
+              income={income}
+              expense={expense}
+              net={net}
+              txCount={filtered.length}
+              avgIncome={avgIncome}
+              avgExpense={avgExpense}
+              avgNet={avgNet}
+              monthCount={monthCount}
+              lang={lang}
+              t={t}
+            />
+            <div className="section-title">{t("recentTx", lang)}</div>
+            <TransactionList
+              transactions={filtered.slice(0, 5)}
+              onDelete={handleDelete}
+              lang={lang}
+              t={t}
+            />
+            {filtered.length > 5 && (
+              <button className="see-all-btn" onClick={() => setActiveTab("history")}>
+                {lang === "tr" ? `Tümünü Gör (${filtered.length})` : `See All (${filtered.length})`}
+              </button>
+            )}
+          </div>
+        )}
 
-          <div className="section-title">{t("distribution", lang)}</div>
-          <PieChart transactions={filtered} lang={lang} t={t} />
-          <div className="section-title">{lang === "tr" ? "Son 6 Ay Trendi" : "6-Month Trend"}</div>
-          <TrendChart transactions={transactions} lang={lang} t={t} />
+        {activeTab === "add" && (
+          <div className="tab-content">
+            <div className="section-title">{t("addTx", lang)}</div>
+            <TransactionForm onAdd={handleAdd} lang={lang} t={t} />
+          </div>
+        )}
 
-          <div className="section-title">{lang === "tr" ? "Bütçe Hedefleri" : "Budget Goals"}</div>
-          <BudgetGoals transactions={filtered} lang={lang} t={t} />
+        {activeTab === "history" && (
+          <div className="tab-content">
+            <div className="section-title">{t("recentTx", lang)}</div>
+            <TransactionList
+              transactions={filtered}
+              onDelete={handleDelete}
+              lang={lang}
+              t={t}
+            />
+          </div>
+        )}
 
-          <div className="section-title">{lang === "tr" ? "Tekrarlayan İşlemler" : "Recurring Transactions"}</div>
-          <RecurringManager lang={lang} t={t} />
+        {activeTab === "charts" && (
+          <div className="tab-content">
+            <AnalysisPanel transactions={filtered} period={filter === "month" ? `${selectedMonth.year}-${selectedMonth.month + 1}` : filter} lang={lang} />
 
-          <div className="section-title">{t("recentTx", lang)}</div>
-          <TransactionList
-            transactions={filtered}
-            onDelete={handleDelete}
-            lang={lang}
-            t={t}
-          />
-        </section>
+            <div className="section-title">{t("distribution", lang)}</div>
+            <PieChart transactions={filtered} lang={lang} t={t} />
 
-        <section className="right-panel">
-          <div className="section-title">{t("addTx", lang)}</div>
-          <TransactionForm onAdd={handleAdd} lang={lang} t={t} />
-        </section>
+            <div className="section-title">{lang === "tr" ? "Son 6 Ay Trendi" : "6-Month Trend"}</div>
+            <TrendChart transactions={transactions} lang={lang} t={t} />
+
+            <div className="section-title">{lang === "tr" ? "Bütçe Hedefleri" : "Budget Goals"}</div>
+            <BudgetGoals transactions={filtered} lang={lang} t={t} />
+
+            <div className="section-title">{lang === "tr" ? "Tekrarlayan İşlemler" : "Recurring"}</div>
+            <RecurringManager lang={lang} t={t} />
+          </div>
+        )}
       </main>
+
+      <nav className="bottom-nav">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`nav-tab ${activeTab === tab.id ? "nav-tab--active" : ""} ${tab.id === "add" ? "nav-tab--add" : ""}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            <span className="nav-tab-icon">{tab.icon}</span>
+            <span className="nav-tab-label">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

@@ -152,27 +152,113 @@ body {
   text-align: center;
 }
 
-/* ── Main layout ─────────────────────────────────── */
-.main {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
-  padding: 28px 32px;
+/* ── Main layout (mobile-first) ──────────────────── */
+.main-mobile {
   flex: 1;
-  align-items: start;
+  overflow-y: auto;
+  padding-bottom: 80px;
 }
 
-@media (max-width: 900px) {
-  .main {
-    grid-template-columns: 1fr;
-    padding: 16px;
-    gap: 16px;
-  }
-  .right-panel {
-    position: static;
-    order: -1;
+.tab-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Desktop fallback */
+@media (min-width: 900px) {
+  .main-mobile {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
   }
 }
+
+/* ── Bottom Navigation ───────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--surf1);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: all 0.15s;
+}
+
+.nav-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+
+.nav-tab-label {
+  font-family: var(--body);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+  transition: color 0.15s;
+}
+
+.nav-tab--active .nav-tab-icon,
+.nav-tab--active .nav-tab-label {
+  color: var(--gold);
+}
+
+.nav-tab--add .nav-tab-icon {
+  width: 42px;
+  height: 42px;
+  background: var(--gold);
+  color: #07090f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 300;
+  margin-top: -14px;
+  box-shadow: 0 4px 16px rgba(212,168,67,0.4);
+}
+.nav-tab--add.nav-tab--active .nav-tab-icon {
+  background: var(--gold);
+  color: #07090f;
+}
+.nav-tab--add .nav-tab-label {
+  margin-top: 2px;
+}
+
+/* ── See All Button ──────────────────────────────── */
+.see-all-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  font-family: var(--body);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.see-all-btn:hover { color: var(--text); border-color: var(--gold); }
 
 .section-title {
   font-size: 11px;
@@ -420,8 +506,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 20px;
-  position: sticky;
-  top: 24px;
 }
 
 .tx-form { display: flex; flex-direction: column; gap: 10px; }
