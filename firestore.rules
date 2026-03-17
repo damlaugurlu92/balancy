@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /transactions/{txId} {
+      // Okuma: sadece kendi işlemlerini görebilir
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+
+      // Güncelleme / silme: sadece kendi kaydını değiştirebilir
+      allow update, delete: if request.auth != null
+                            && resource.data.userId == request.auth.uid;
+
+      // Oluşturma: userId eşleşmeli, amount pozitif, type geçerli olmalı
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.amount > 0
+                    && request.resource.data.type in ['income', 'expense'];
+    }
+  }
+}
